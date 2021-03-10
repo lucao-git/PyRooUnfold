@@ -3,31 +3,38 @@ This is a Python wrapper of RooUnfold, plus a toolkit for bias, toy test, and co
 
 
 
-#===== Install =====
+## Install
 
 Please make sure RooUnfold has been installed before using PyRooUnfold.
 
 If not, please first follow the steps to install RooUnfold https://gitlab.cern.ch/RooUnfold/RooUnfold/-/blob/master/README.md
 
-After installing RooUnfold, please set the environment variable for your RooUnfold libary by
+After installing RooUnfold, please set the environment variable for your RooUnfold libary as
 
+'''
 export ROOUNFOLD_PATH="/path/for/your/libRooUnfold.so"
+'''
 
 e.g. in my case
+
+'''
 export ROOUNFOLD_PATH="/Users/caolu/Workspace/RooUnfold/libRooUnfold.so"
+'''
 
+To install PyRooUnfold, you can do
 
-To install PyRooUnfold,
-
+'''
 python3 setup.py install
+'''
 
+If you do not have your own python installation you can do
 
-If you do not have your own python installation you can use:
+'''
 python3 setup.py install --user
+'''
 
 
-
-Tipps on RooUnfold
+### Tipps on RooUnfold
 
 Details of RooUnfold can be found at
 https://gitlab.cern.ch/RooUnfold/RooUnfold
