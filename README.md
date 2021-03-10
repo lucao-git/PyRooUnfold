@@ -37,7 +37,7 @@ python3 setup.py install --user
 ### Tipps on RooUnfold
 
 Details of RooUnfold can be found at
-https://gitlab.cern.ch/RooUnfold/RooUnfold
+https://gitlab.cern.ch/RooUnfold/RooUnfold and an older version at http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
 
 
 This project has been set up using PyScaffold 3.1. For details and usage
