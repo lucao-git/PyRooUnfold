@@ -77,9 +77,9 @@ class toy_unfold:
             df_unf, _ = uf(self.hist_test_true, hist_test_measure_toy, self.hist_respon, method, para)
             result_df = result_df.append(df_unf)
             
-        result_cen_mean = [result_df.loc[result_df.bin_index==i,'unfolded_central'].mean() for i in range(0, len(self.bins)-1)]
+        result_cen_mean = [result_df.loc[result_df.bin_index==i,'unfolded_central'].median() for i in range(0, len(self.bins)-1)]
         
-        result_cen_err = [result_df.loc[result_df.bin_index==i,'unfolded_error'].std() + result_df.loc[result_df.bin_index==i,'unfolded_error'].mean()
+        result_cen_err = [result_df.loc[result_df.bin_index==i,'unfolded_error'].std() + result_df.loc[result_df.bin_index==i,'unfolded_error'].median()
                    for i in range(0, len(self.bins)-1)]
         result_cov = np.outer(result_cen_err, result_cen_err) * self.reco_cor
         
