@@ -27,12 +27,12 @@
 import ROOT
 import os
 ROOT.gSystem.Load(os.getenv("ROOUNFOLD_PATH"))
-from pyroounfold.roo_convertor import th1_to_arr
+from pyroounfold.utils.roo_convertor import th1_to_arr, ndarr_to_tmatrix
 import pandas as pd
 import numpy as np
 
 
-def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None):
+def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_cov=False, kcovtoy=False):
     """ do unfolding on a measured distribution with a response matrix.
         
         Args:
@@ -57,7 +57,10 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None):
         if para is None or para <0 : print('Ids method requires a iteration number (>=0).')
         elif para>=0 :
                     unf = ROOT.RooUnfoldIds(hist_respon, hist_measure, para)
-                    unf.IncludeSystematics()
+                    if(kcovtoy):
+                        unf.IncludeSystematics()
+                    if(mea_cov):
+                        unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
                     unfres = unf.Hreco()
                     unfcov = unf.Ereco(witherror)
 
@@ -68,7 +71,10 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None):
         elif para > hist_measure.GetNbinsX(): print('Svd method do not work when regularisation number > nbins.')
         elif para>= 0 & para <= hist_measure.GetNbinsX():
             unf = ROOT.RooUnfoldSvd(hist_respon, hist_measure, para)
-            unf.IncludeSystematics()
+            if(kcovtoy):
+                unf.IncludeSystematics()
+            if(mea_cov):
+                unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
             unfres = unf.Hreco()
             unfcov = unf.Ereco(witherror)
 
@@ -79,7 +85,10 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None):
             print('Bayes method requires a iteration number (default 4).')
             para=4
         unf = ROOT.RooUnfoldBayes(hist_respon, hist_measure, para)
-        unf.IncludeSystematics()
+        if(kcovtoy):
+            unf.IncludeSystematics()
+        if(mea_cov):
+            unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
         unfres = unf.Hreco()
         unfcov = unf.Ereco(witherror)
 
@@ -87,7 +96,10 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None):
         #print('Use matrix invert method.')
         if para is not None: print('Unregularised matrix inerson method does not need parameter. Input parameter was ignored.')
         unf = ROOT.RooUnfoldInvert(hist_respon, hist_measure)
-        unf.IncludeSystematics()
+        if(kcovtoy):
+            unf.IncludeSystematics()
+        if(mea_cov):
+            unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
         unfres = unf.Hreco()
         unfcov = unf.Ereco(witherror)
 
@@ -96,7 +108,10 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None):
         #print('Use TUnfold method.')
         if para is not None: print('TUfold method does not need input parameter. Input parameter was ignored.')
         unf = ROOT.RooUnfoldTUnfold(hist_respon, hist_measure)
-        unf.IncludeSystematics()
+        if(kcovtoy):
+            unf.IncludeSystematics()
+        if(mea_cov):
+            unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
         unfres = unf.Hreco()
         unfcov = unf.Ereco(witherror)
     
@@ -105,7 +120,10 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None):
         #print('Use bin-by-bin correction method.')
         if para is not None: print('Bin-by-bin correction method does not need parameter. Input parameter was ignored.')
         unf = ROOT.RooUnfoldBinByBin(hist_respon, hist_measure)
-        unf.IncludeSystematics()
+        if(kcovtoy):
+            unf.IncludeSystematics()
+        if(mea_cov):
+            unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
         unfres = unf.Hreco()
         unfcov = unf.Ereco(witherror)
 
