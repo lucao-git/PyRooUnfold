@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """ Roo_convertor
     
-    This convert numpy array into ROOT class: TH1, TH2, and RooUnfoldResponse
+    This convert numpy array into ROOT class: TH1, TH2, TMatrixD and RooUnfoldResponse
     or vice versa.
 
 """
@@ -119,9 +119,6 @@ def arr_to_th1(bins, cen, err='False'):
         Returns:
         hist : TH1D histogram
         
-        To do:
-        add a similar function for 2D hist
-        
         """
     
     hist = ROOT.TH1D("h1", "h1", bins.size-1, bins)
@@ -133,3 +130,38 @@ def arr_to_th1(bins, cen, err='False'):
                 hist.SetBinError(x+1, err[x])
     return hist
     
+    
+def ndarr_to_tmatrix(cov):
+    """ Convert numpy covariance matrix to TMatrixD.
+        Args:
+        cov : numpy ndarray (n,n)
+        
+        Returns:
+        m : TMatrixD (n,n)
+        
+        """
+    ndim = len(cov)
+    m = ROOT.TMatrixD (ndim, ndim)
+    
+    for x in range(ndim):
+        for y in range(ndim):
+            m[x][y] = cov[x][y]
+    return m
+
+
+def ndarr_to_th2(cov):
+    """ Convert numpy 2D array to TH2D histogram.
+        Args:
+        cov : numpy ndarray (n,n)
+        
+        Returns:
+        m : TH2D (n,n)
+        
+        """
+    ndim = len(cov)
+    hist = ROOT.TH2D("h2", "h2", bins.size-1, bins, bins.size-1, bins)
+    
+    for x in range(ndim):
+        for y in range(ndim):
+            hist.SetBinContent(x+1, y+1, cov[x][y])
+    return hist
