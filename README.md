@@ -33,6 +33,11 @@ If you do not have your own python installation you can do
 python3 setup.py install --user
 ```
 
+After this, you need to include the package into your python library. This is can be done via adding the following command in your ~/.bash :
+
+```
+export PYTHONPATH=$PYTHONPATH:<path-of-PyrooUnfold>
+```
 
 ### Tipps on RooUnfold
 
