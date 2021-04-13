@@ -18,8 +18,8 @@ This provides main unfolding class.
 import ROOT
 import os
 ROOT.gSystem.Load(os.getenv("ROOUNFOLD_PATH"))
-from pyroounfold.utils.roo_convertor import df_to_roounf, th1_to_arr, arr_to_th1
-from pyroounfold.utils.bias_study import study_complex_errors
+from pyroounfold.utils.roo_convertor import df_to_roounf, th1_to_arr, arr_to_th1, ndarr_to_tmatrix
+from pyroounfold.utils.bias_study import study_complex_errors, cov2corr
 from pyroounfold.utils.generate_toys import *
 import pyroounfold.plotstyle as ps
 from pyroounfold.plotstyle.colors import PaperColors as p
@@ -30,7 +30,7 @@ import numpy as np
 
 class unfold:
 
-    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False'):
+    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', kcovtoy=False):
     
         self.witherror = ROOT.RooUnfold.kCovariance
         
@@ -47,6 +47,7 @@ class unfold:
         
         self.reco_bin_error = reco_bin_error
         self.reco_cov = reco_cov
+        self.kcovtoy = kcovtoy
         
         if reco_cov != 'False':
             self.reco_bin_error = np.sqrt(reco_cov.diagonal())
@@ -74,7 +75,10 @@ class unfold:
         if para is None or para <0 : print('ERROR: Ids method requires a iteration number (>=0).')
         elif para>=0 :
                     unf = ROOT.RooUnfoldIds(self.hist_respon, self.hist_test_measure, para)
-                    unf.IncludeSystematics()
+                    if(self.kcovtoy):
+                        unf.IncludeSystematics()
+                    if self.reco_cov != 'False':
+                        unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
                     self.unfres = unf.Hreco()
                     self.unfres_cov = unf.Ereco(self.witherror)
                     self.unf_result_cov()
@@ -86,7 +90,10 @@ class unfold:
         elif para > self.hist_test_measure.GetNbinsX(): print('ERROR: Svd method do not work when regularisation number > nbins.')
         elif para>= 0 & para <= self.hist_test_measure.GetNbinsX():
             unf = ROOT.RooUnfoldSvd(self.hist_respon, self.hist_test_measure, para)
-            unf.IncludeSystematics()
+            if(self.kcovtoy):
+                unf.IncludeSystematics()
+            if self.reco_cov != 'False':
+                unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
             self.unfres = unf.Hreco()
             self.unfres_cov = unf.Ereco(self.witherror)
             self.unf_result_cov()
@@ -97,7 +104,10 @@ class unfold:
             print('ERROR: Bayes method requires a iteration number.')
         else:
             unf = ROOT.RooUnfoldBayes(self.hist_respon, self.hist_test_measure, para)
-            unf.IncludeSystematics()
+            if(self.kcovtoy):
+                unf.IncludeSystematics()
+            if self.reco_cov != 'False':
+                unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
             self.unfres = unf.Hreco()
             self.unfres_cov = unf.Ereco(self.witherror)
             self.unf_result_cov()
@@ -105,7 +115,10 @@ class unfold:
             
     def do_Invert(self):
         unf = ROOT.RooUnfoldInvert(self.hist_respon, self.hist_test_measure)
-        unf.IncludeSystematics()
+        if(self.kcovtoy):
+            unf.IncludeSystematics()
+        if self.reco_cov != 'False':
+            unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
         self.unfres = unf.Hreco()
         self.unfres_cov = unf.Ereco(self.witherror)
         self.unf_result_cov()
@@ -113,7 +126,10 @@ class unfold:
         
     def do_TUnfold(self):
         unf = ROOT.RooUnfoldTUnfold(self.hist_respon, self.hist_test_measure)
-        unf.IncludeSystematics()
+        if(self.kcovtoy):
+            unf.IncludeSystematics()
+        if self.reco_cov != 'False':
+            unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
         self.unfres = unf.Hreco()
         self.unfres_cov = unf.Ereco(self.witherror)
         self.unf_result_cov()
@@ -121,7 +137,10 @@ class unfold:
     
     def do_BinByBin(self):
         unf = ROOT.RooUnfoldBinByBin(self.hist_respon, self.hist_test_measure)
-        unf.IncludeSystematics()
+        if(self.kcovtoy):
+            unf.IncludeSystematics()
+        if self.reco_cov != 'False':
+            unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
         self.unfres = unf.Hreco()
         self.unfres_cov = unf.Ereco(self.witherror)
         self.unf_result_cov()

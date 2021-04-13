@@ -9,7 +9,7 @@ This provides main unfolding class for toy study.
 import ROOT
 import os
 ROOT.gSystem.Load(os.getenv("ROOUNFOLD_PATH"))
-from pyroounfold.utils.roo_convertor import df_to_roounf, th1_to_arr, arr_to_th1
+from pyroounfold.utils.roo_convertor import *
 from pyroounfold.utils.bias_study import *
 from pyroounfold.utils.generate_toys import *
 from pyroounfold.utils.unfold_methods import do_unfold as uf
@@ -24,7 +24,7 @@ import numpy as np
         
 class toy_unfold:
 
-    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=True):
+    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=True, kcovtoy=False):
     
         self.witherror = ROOT.RooUnfold.kCovariance
         
@@ -50,6 +50,8 @@ class toy_unfold:
         
         self.reco_cov = reco_cov
         
+        self.kcovtoy = kcovtoy
+        
         if reco_cov != 'False':
             self.reco_bin_error = np.sqrt(reco_cov.diagonal())
             self.reco_cor = cov2corr(reco_cov)
@@ -68,13 +70,13 @@ class toy_unfold:
         
 
 
-    def do_toyUnfold(self, method=None, para=None, get_fom=False):
+    def do_toyUnfold(self,  method=None, para=None, get_fom=False):
         if method is None : print('Please indicate one method for unfolding: \'Ids\', \'Svd\', \'Bayes\', \'TUnfold\', \'Invert\', \'BinByBin\'.')
         
         result_df = pd.DataFrame()
         for i in range(self.size):
             hist_test_measure_toy = arr_to_th1(self.bins, self.toys_df.iloc[i], self.reco_bin_error )
-            df_unf, _ = uf(self.hist_test_true, hist_test_measure_toy, self.hist_respon, method, para)
+            df_unf, _ = uf(self.hist_test_true, hist_test_measure_toy, self.hist_respon, method, para, self.reco_cov, self.kcovtoy)
             result_df = result_df.append(df_unf)
             
         result_cen_mean = [result_df.loc[result_df.bin_index==i,'unfolded_central'].median() for i in range(0, len(self.bins)-1)]
