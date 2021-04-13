@@ -15,8 +15,8 @@ To do:
 """
 
 import numpy as np
-from pyroounfold.roo_convertor import th1_to_arr
-from pyroounfold.unfold_methods import do_unfold
+from pyroounfold.utils.roo_convertor import th1_to_arr
+from pyroounfold.utils.unfold_methods import do_unfold
 import ROOT
 
 
