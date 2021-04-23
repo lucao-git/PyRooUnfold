@@ -32,8 +32,8 @@ def get_stat_err(df_sig, weight_sig, df_bkg, weight_bkg, var, bin_arr):
     return err
 
 def df_to_roounf(train, weight_train, test, weight_test, true_name, reco_name, bins, bkg=None, weight_bkg=None):
-    """ Extract expected statistical uncertainty by combining signal and background
-        
+    """ Convert dataframe input to ROOT hist and RooUnfoldResponse
+    
         Args:
         train : train dataframe
         weight_train : array of event-weights for train sample
@@ -55,24 +55,25 @@ def df_to_roounf(train, weight_train, test, weight_test, true_name, reco_name, b
         To do:
         1) add function to use RooUnfoldResponse.Miss() for scaling response matrix by the efficiency of each truth bin
         """
+        
+    ROOT.TH1.AddDirectory(False)
+    
     hist_train_true = ROOT.TH1D("train_"+true_name, "train_"+true_name, bins.size-1, bins)
     hist_train_reco = ROOT.TH1D("train_"+reco_name, "train_"+reco_name, bins.size-1, bins)
     hist_train_Adet = ROOT.TH2D("train_Adet_"+reco_name, "train_Adet_"+reco_name, bins.size-1, bins, bins.size-1, bins)
     
     hist_test_true = ROOT.TH1D("test_"+true_name, "test_"+true_name, bins.size-1, bins)
     hist_test_reco = ROOT.TH1D("data_"+reco_name, "test_"+reco_name, bins.size-1, bins)
-    hist_test_Adet = ROOT.TH2D("test_Adet_"+reco_name, "test_Adet_"+reco_name, bins.size-1, bins, bins.size-1, bins)
     
     for x in range(len(train)):
         hist_train_true.Fill(train[true_name].values[x], weight_train.values[x])
         hist_train_reco.Fill(train[reco_name].values[x], weight_train.values[x])
         hist_train_Adet.Fill(train[reco_name].values[x], train[true_name].values[x], weight_train.values[x])
-    
+        
     for x in range(len(test)):
         hist_test_true.Fill(test[true_name].values[x], weight_test.values[x])
         hist_test_reco.Fill(test[reco_name].values[x], weight_test.values[x])
-        hist_test_Adet.Fill(test[reco_name].values[x], test[true_name].values[x], weight_test.values[x])
-
+        
     # replace sqrt(#sig) to expected stat. error: sqrt(#sig + #bkg)
     if bkg is not None:
         for x in range(bins.size-1):
@@ -120,7 +121,7 @@ def arr_to_th1(bins, cen, err='False'):
         hist : TH1D histogram
         
         """
-    
+    ROOT.TH1.AddDirectory(False)
     hist = ROOT.TH1D("h1", "h1", bins.size-1, bins)
     if err=='False': # default is statistical error
         err=np.sqrt(cen)
@@ -158,6 +159,8 @@ def ndarr_to_th2(cov):
         m : TH2D (n,n)
         
         """
+    ROOT.TH1.AddDirectory(False)
+    
     ndim = len(cov)
     hist = ROOT.TH2D("h2", "h2", bins.size-1, bins, bins.size-1, bins)
     
