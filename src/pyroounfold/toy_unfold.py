@@ -26,6 +26,28 @@ class toy_unfold:
 
     def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=True, kcovtoy=False):
     
+        """
+        
+        Args:
+        df_train : train dataframe used for migration matrix, e.g. MC
+        weight_train : array of event-weights for train sample
+        df_test : test dataframe used for unfolding target, e.g. data
+        weight_test : array of event-weights for test sample
+        name_var_true : string of index in the dataframe for a true varibale, e.g. 'true_q2'
+        name_var_reco : string of index in the dataframe for a reconstructed varibale, e.g. 'reco_q2'
+        show_var : string of variable to be shown in plot, e.g. r'$q^{2}$'
+        bins: an array of binning
+        reco_bin_error (optional) : measured bin-wiese uncertainty, and used to build toys (Gaussian smearing) if reco_cov is not provided.
+        reco_cov (optional) : measured covariance matrix, and used to build toys based on multivariate Gaussian smearing. If none of reco_bin_error or reco_cov are provided, toys are produced based on stat. error with Gaussian ('poisson=False') or Poisson ('poisson=True') smearing.
+
+        toy_size (optional) : number of toys, default is 1000
+        poisson (optional) : flag to use Poisson smearing for statistical uncertainty
+        kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False. If True, run toys based on smearing migration matrix.
+        
+        
+        """
+        
+        
         self.witherror = ROOT.RooUnfold.kCovariance
         
         
