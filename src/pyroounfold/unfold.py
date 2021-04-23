@@ -31,9 +31,27 @@ import numpy as np
 class unfold:
 
     def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', kcovtoy=False):
-    
-        self.witherror = ROOT.RooUnfold.kCovariance
+        """
         
+        Args:
+        df_train : train dataframe used for migration matrix, e.g. MC
+        weight_train : array of event-weights for train sample
+        df_test : test dataframe used for unfolding target, e.g. data
+        weight_test : array of event-weights for test sample
+        name_var_true : string of index in the dataframe for a true varibale, e.g. 'true_q2'
+        name_var_reco : string of index in the dataframe for a reconstructed varibale, e.g. 'reco_q2'
+        show_var : string of variable to be shown in plot, e.g. '$q^{2}$'
+        bins: an array of binning
+        reco_bin_error (optional) : measured bin-wiese uncertainty, default is statistical error based on bin content
+        reco_cov (optional) : measured covariance matrix, default is statistical covariance
+        kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False. If True, run toys based on smearing migration matrix.
+        
+        Result:
+        result_df : dataframe with columns=['bin_index', 'truth_central', 'truth_stat_error', 'measured_central', 'measured_error', 'unfolded_central', 'unfolded_error']
+        result_cov : post-unfolding covariance matrix
+        """
+
+        self.witherror = ROOT.RooUnfold.kCovariance
         
         self.hist_train_true, self.hist_train_measure, self.hist_respon, self.hist_test_true,  self.hist_test_measure = df_to_roounf(
         train = df_train,
@@ -69,8 +87,6 @@ class unfold:
             for x in range(self.nbins):
                 self.hist_test_measure.SetBinError(x+1, self.reco_bin_error[x])
         
-        
-        
     def do_Ids(self, para):
         if para is None or para <0 : print('ERROR: Ids method requires a iteration number (>=0).')
         elif para>=0 :
@@ -83,6 +99,7 @@ class unfold:
                     self.unfres_cov = unf.Ereco(self.witherror)
                     self.unf_result_cov()
                     self.unf_result_df()
+                    
                     
     
     def do_Svd(self, para):
@@ -99,6 +116,7 @@ class unfold:
             self.unf_result_cov()
             self.unf_result_df()
             
+            
     def do_Bayes(self, para):
         if para is None :
             print('ERROR: Bayes method requires a iteration number.')
@@ -113,6 +131,7 @@ class unfold:
             self.unf_result_cov()
             self.unf_result_df()
             
+            
     def do_Invert(self):
         unf = ROOT.RooUnfoldInvert(self.hist_respon, self.hist_test_measure)
         if(self.kcovtoy):
@@ -124,6 +143,7 @@ class unfold:
         self.unf_result_cov()
         self.unf_result_df()
         
+        
     def do_TUnfold(self):
         unf = ROOT.RooUnfoldTUnfold(self.hist_respon, self.hist_test_measure)
         if(self.kcovtoy):
@@ -134,6 +154,7 @@ class unfold:
         self.unfres_cov = unf.Ereco(self.witherror)
         self.unf_result_cov()
         self.unf_result_df()
+        
     
     def do_BinByBin(self):
         unf = ROOT.RooUnfoldBinByBin(self.hist_respon, self.hist_test_measure)
@@ -145,6 +166,7 @@ class unfold:
         self.unfres_cov = unf.Ereco(self.witherror)
         self.unf_result_cov()
         self.unf_result_df()
+        
         
     def unf_result_df(self):
         self.result_df['truth_central'], self.result_df['truth_stat_error'] = th1_to_arr(self.hist_test_true)
