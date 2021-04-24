@@ -32,7 +32,7 @@ import pandas as pd
 import numpy as np
 
 
-def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_cov=False, kcovtoy=False):
+def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_cov='False', kcovtoy=False):
     """ do unfolding on a measured distribution with a response matrix.
         
         Args:
@@ -59,8 +59,8 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_
                     unf = ROOT.RooUnfoldIds(hist_respon, hist_measure, para)
                     if(kcovtoy):
                         unf.IncludeSystematics()
-                    if(mea_cov):
-                        unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
+                    if(mea_cov!='False'):
+                        unf.SetMeasuredCov(ndarr_to_tmatrix(mea_cov))
                     unfres = unf.Hreco()
                     unfcov = unf.Ereco(witherror)
 
@@ -73,8 +73,8 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_
             unf = ROOT.RooUnfoldSvd(hist_respon, hist_measure, para)
             if(kcovtoy):
                 unf.IncludeSystematics()
-            if(mea_cov):
-                unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
+            if(mea_cov!='False'):
+                unf.SetMeasuredCov(ndarr_to_tmatrix(mea_cov))
             unfres = unf.Hreco()
             unfcov = unf.Ereco(witherror)
 
@@ -87,8 +87,8 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_
         unf = ROOT.RooUnfoldBayes(hist_respon, hist_measure, para)
         if(kcovtoy):
             unf.IncludeSystematics()
-        if(mea_cov):
-            unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
+        if(mea_cov!='False'):
+            unf.SetMeasuredCov(ndarr_to_tmatrix(mea_cov))
         unfres = unf.Hreco()
         unfcov = unf.Ereco(witherror)
 
@@ -98,8 +98,8 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_
         unf = ROOT.RooUnfoldInvert(hist_respon, hist_measure)
         if(kcovtoy):
             unf.IncludeSystematics()
-        if(mea_cov):
-            unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
+        if(mea_cov!='False'):
+            unf.SetMeasuredCov(ndarr_to_tmatrix(mea_cov))
         unfres = unf.Hreco()
         unfcov = unf.Ereco(witherror)
 
@@ -110,8 +110,8 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_
         unf = ROOT.RooUnfoldTUnfold(hist_respon, hist_measure)
         if(kcovtoy):
             unf.IncludeSystematics()
-        if(mea_cov):
-            unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
+        if(mea_cov!='False'):
+            unf.SetMeasuredCov(ndarr_to_tmatrix(mea_cov))
         unfres = unf.Hreco()
         unfcov = unf.Ereco(witherror)
     
@@ -122,8 +122,8 @@ def do_unfold(hist_true, hist_measure, hist_respon, method=None, para=None, mea_
         unf = ROOT.RooUnfoldBinByBin(hist_respon, hist_measure)
         if(kcovtoy):
             unf.IncludeSystematics()
-        if(mea_cov):
-            unf.SetMeasuredCov(ndarr_to_tmatrix(cov))
+        if(mea_cov!='False'):
+            unf.SetMeasuredCov(ndarr_to_tmatrix(mea_cov))
         unfres = unf.Hreco()
         unfcov = unf.Ereco(witherror)
 
