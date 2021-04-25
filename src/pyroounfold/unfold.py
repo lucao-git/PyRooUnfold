@@ -30,7 +30,7 @@ import numpy as np
 
 class unfold:
 
-    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', kcovtoy=False):
+    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', kcovtoy=False, mc_stat_err=0):
         """
         
         Args:
@@ -44,14 +44,23 @@ class unfold:
         bins: an array of binning
         reco_bin_error (optional) : measured bin-wiese uncertainty, default is statistical error based on bin content
         reco_cov (optional) : measured covariance matrix, default is statistical covariance
-        kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False. If True, run toys based on smearing migration matrix.
+        kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False and the full covariance matrix 'reco_cov' propagated through unfolding. If True, the error propagation is based on toys generated internally by RooUnfold.
+        mc_stat_err (optional) : relate to ROOUNFOLD::includeSystematics().  Default "0" is to leave out the effect of statistical uncertainties on the migration matrix. "1" is to include the effect. "2" is for only counting the statistical uncertainties of measured distribtuon and migration matrix. The effect is valueated by internal toys.
+        
         
         Result:
         result_df : dataframe with columns=['bin_index', 'truth_central', 'truth_stat_error', 'measured_central', 'measured_error', 'unfolded_central', 'unfolded_error']
         result_cov : post-unfolding covariance matrix
         """
 
-        self.witherror = ROOT.RooUnfold.kCovariance
+        
+        if(kcovtoy):
+            self.witherror = ROOT.RooUnfold.kCovToy  #  error propagation based on toys generated internally by RooUnfold
+        else:
+            self.witherror = ROOT.RooUnfold.kCovariance  #  error propagation based on full covariance matrix
+        
+        
+        self.mc_stat_err = mc_stat_err
         
         self.hist_train_true, self.hist_train_measure, self.hist_respon, self.hist_test_true,  self.hist_test_measure = df_to_roounf(
         train = df_train,
@@ -91,8 +100,8 @@ class unfold:
         if para is None or para <0 : print('ERROR: Ids method requires a iteration number (>=0).')
         elif para>=0 :
                     unf = ROOT.RooUnfoldIds(self.hist_respon, self.hist_test_measure, para)
-                    if(self.kcovtoy):
-                        unf.IncludeSystematics()
+                    if(self.mc_stat_err > 0):
+                        unf.IncludeSystematics(self.mc_stat_err)
                     if self.reco_cov != 'False':
                         unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
                     self.unfres = unf.Hreco()
@@ -107,8 +116,8 @@ class unfold:
         elif para > self.hist_test_measure.GetNbinsX(): print('ERROR: Svd method do not work when regularisation number > nbins.')
         elif para>= 0 & para <= self.hist_test_measure.GetNbinsX():
             unf = ROOT.RooUnfoldSvd(self.hist_respon, self.hist_test_measure, para)
-            if(self.kcovtoy):
-                unf.IncludeSystematics()
+            if(self.mc_stat_err > 0):
+                unf.IncludeSystematics(self.mc_stat_err)
             if self.reco_cov != 'False':
                 unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
             self.unfres = unf.Hreco()
@@ -122,8 +131,8 @@ class unfold:
             print('ERROR: Bayes method requires a iteration number.')
         else:
             unf = ROOT.RooUnfoldBayes(self.hist_respon, self.hist_test_measure, para)
-            if(self.kcovtoy):
-                unf.IncludeSystematics()
+            if(self.mc_stat_err > 0):
+                unf.IncludeSystematics(self.mc_stat_err)
             if self.reco_cov != 'False':
                 unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
             self.unfres = unf.Hreco()
@@ -134,8 +143,8 @@ class unfold:
             
     def do_Invert(self):
         unf = ROOT.RooUnfoldInvert(self.hist_respon, self.hist_test_measure)
-        if(self.kcovtoy):
-            unf.IncludeSystematics()
+        if(self.mc_stat_err > 0):
+            unf.IncludeSystematics(self.mc_stat_err)
         if self.reco_cov != 'False':
             unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
         self.unfres = unf.Hreco()
@@ -146,8 +155,8 @@ class unfold:
         
     def do_TUnfold(self):
         unf = ROOT.RooUnfoldTUnfold(self.hist_respon, self.hist_test_measure)
-        if(self.kcovtoy):
-            unf.IncludeSystematics()
+        if(self.mc_stat_err > 0):
+            unf.IncludeSystematics(self.mc_stat_err)
         if self.reco_cov != 'False':
             unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
         self.unfres = unf.Hreco()
@@ -158,8 +167,8 @@ class unfold:
     
     def do_BinByBin(self):
         unf = ROOT.RooUnfoldBinByBin(self.hist_respon, self.hist_test_measure)
-        if(self.kcovtoy):
-            unf.IncludeSystematics()
+        if(self.mc_stat_err > 0):
+            unf.IncludeSystematics(self.mc_stat_err)
         if self.reco_cov != 'False':
             unf.SetMeasuredCov(ndarr_to_tmatrix(self.reco_cov))
         self.unfres = unf.Hreco()

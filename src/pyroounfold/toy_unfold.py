@@ -24,7 +24,7 @@ import numpy as np
         
 class toy_unfold:
 
-    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=True, kcovtoy=False):
+    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=True, kcovtoy=False, mc_stat_err=0):
     
         """
         
@@ -42,15 +42,19 @@ class toy_unfold:
 
         toy_size (optional) : number of toys, default is 1000
         poisson (optional) : flag to use Poisson smearing for statistical uncertainty
-        kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False. If True, run toys based on smearing migration matrix.
+        kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False and the full covariance matrix 'reco_cov' propagated through unfolding. If True, the error propagation is based on toys generated internally by RooUnfold.
+        mc_stat_err (optional) : relate to ROOUNFOLD::includeSystematics().  Default "0" is to leave out the effect of statistical uncertainties on the migration matrix. "1" is to include the effect. "2" is for only counting the statistical uncertainties of measured distribtuon and migration matrix. The effect is valueated by internal toys.
         
         
         """
         
+        if(kcovtoy):
+            self.witherror = ROOT.RooUnfold.kCovToy  #  error propagation based on toys generated internally by RooUnfold
         
-        self.witherror = ROOT.RooUnfold.kCovariance
+        else:
+            self.witherror = ROOT.RooUnfold.kCovariance  #  error propagation based on full covariance matrix
         
-        
+        self.mc_stat_err = mc_stat_err
         self.hist_train_true, self.hist_train_measure, self.hist_respon, self.hist_test_true, self.hist_test_measure = df_to_roounf(
         train = df_train,
         weight_train = weight_train,
@@ -98,7 +102,7 @@ class toy_unfold:
         result_df = pd.DataFrame()
         for i in range(self.size):
             hist_test_measure_toy = arr_to_th1(self.bins, self.toys_df.iloc[i], self.reco_bin_error )
-            df_unf, _ = uf(self.hist_test_true, hist_test_measure_toy, self.hist_respon, method, para, self.reco_cov, self.kcovtoy)
+            df_unf, _ = uf(self.hist_test_true, hist_test_measure_toy, self.hist_respon, method, para, self.reco_cov, self.kcovtoy, self.mc_stat_err)
             result_df = result_df.append(df_unf)
             
         result_cen_mean = [result_df.loc[result_df.bin_index==i,'unfolded_central'].median() for i in range(0, len(self.bins)-1)]
