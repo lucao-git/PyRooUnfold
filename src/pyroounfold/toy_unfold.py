@@ -76,7 +76,7 @@ class toy_unfold:
         
         self.reco_cov = reco_cov
         
-        self.reco_cor = np.diagonal(np.ones(self.nbins))
+        self.reco_cor = np.diagonal(np.ones(self.nbins))  ## initialisation
         
         self.kcovtoy = kcovtoy
         
