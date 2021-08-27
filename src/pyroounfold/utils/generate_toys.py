@@ -21,13 +21,13 @@ def get_toys_BinnedData(n_arr, size=1000, bin_err='False', cov='False',  poisson
         for i in range(0,size):
             if poisson==False:
                 if bin_err!='False':
-                    print('Generate toys abased on Gaussian smearing of input bin-error.')
+                    #print('Generate toys abased on Gaussian smearing of input bin-error.')
                     toy = np.random.normal(n_arr, bin_err)
                 if bin_err=='False': # stat. error
-                    print('No input error found. Generate toys abased on Gaussian smearing of statistical error. Recommend to use poisson=True in this case.')
+                    #print('No input error found. Generate toys abased on Gaussian smearing of statistical error. Recommend to use poisson=True in this case.')
                     toy = np.random.normal(n_arr, np.sqrt(n_arr))
             else:
-                    print('Generate toys abased on Poisson smearing of statistical error.')
+                    #print('Generate toys abased on Poisson smearing of statistical error.')
                     toy = np.random.poisson(n_arr)
             toys=np.append(toys, toy, axis=0)
     toys=toys.reshape(size, len(n_arr))
