@@ -24,7 +24,7 @@ import numpy as np
         
 class toy_unfold:
 
-    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=True, kcovtoy=False, mc_stat_err=0):
+    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=False, kcovtoy=False, mc_stat_err=0):
     
         """
         
@@ -38,10 +38,10 @@ class toy_unfold:
         show_var : string of variable to be shown in plot, e.g. r'$q^{2}$'
         bins: an array of binning
         reco_bin_error (optional) : measured bin-wiese uncertainty, and used to build toys (Gaussian smearing) if reco_cov is not provided.
-        reco_cov (optional) : measured covariance matrix, and used to build toys based on multivariate Gaussian smearing. If none of reco_bin_error or reco_cov are provided, toys are produced based on stat. error with Gaussian ('poisson=False') or Poisson ('poisson=True') smearing.
+        reco_cov (optional) : measured covariance matrix, and used to build toys based on multivariate Gaussian smearing. If none of reco_bin_error or reco_cov are provided, toys are produced based on stat. error with Poisson ('poisson=True') smearing.
 
         toy_size (optional) : number of toys, default is 1000
-        poisson (optional) : flag to use Poisson smearing for statistical uncertainty
+        poisson (optional) : flag to use Poisson smearing based on statistical uncertainty when no reco_cov or reco_bin_error are provided
         kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False and the full covariance matrix 'reco_cov' propagated through unfolding. If True, the error propagation is based on toys generated internally by RooUnfold.
         mc_stat_err (optional) : relate to ROOUNFOLD::includeSystematics().  Default "0" is to leave out the effect of statistical uncertainties on the migration matrix. "1" is to include the effect. "2" is for only counting the statistical uncertainties of measured distribtuon and migration matrix. The effect is valueated by internal toys.
         
@@ -86,6 +86,7 @@ class toy_unfold:
             
         if (reco_cov == 'False')&(reco_bin_error == 'False'):
             self.reco_bin_error = np.sqrt(self.hist_test_measure)
+            poisson = True
             
         if len(self.reco_bin_error)==self.nbins:
             for x in range(self.nbins):

@@ -60,7 +60,7 @@ def plot_compare_single_run(df, bins, x_title, y_title):
         """
     fig = plt.figure(figsize=(9.0, 5.5))
     plt.plot(get_bin_centers(bins), df['truth_central'], marker='o', color='greenyellow', ls='', label='true')
-    fig = plt.plot(get_bin_centers(bins), df['measured_central'], marker='o', color='red', ls='', label='reco')
+    plt.plot(get_bin_centers(bins), df['measured_central'], marker='o', color='red', ls='', label='reco')
     #plt.bar(get_bin_centers(bins), height=reco_err, width=get_bin_widths(bins),bottom=reco_cen - reco_err/2, fill=False, label='stat. error')
     
     
@@ -143,7 +143,7 @@ def get_migration(true_data, reco_data, weight, bin_var, name_var, txt_offset=0,
     mig_matrix = n_matrix/np.expand_dims(x, axis=0)
     mig_fig, ax = plt.subplots(figsize=(8,8))
     ax.set_aspect("equal")
-    im = ax.imshow(mig_matrix*100, origin='low',cmap=plt.cm.GnBu)
+    im = ax.imshow(mig_matrix*100, origin='lower',cmap=plt.cm.GnBu)
     ax.set_xlabel("Bin index of true " + name_var)
     ax.set_ylabel("Bin index of reconstracted " + name_var)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -164,7 +164,7 @@ def get_migration(true_data, reco_data, weight, bin_var, name_var, txt_offset=0,
 
     n_fig, ax2 = plt.subplots(figsize=(8,8))
     ax2.set_aspect("equal")
-    im2 = ax2.imshow(n_matrix, origin='low',cmap=plt.cm.RdPu)
+    im2 = ax2.imshow(n_matrix, origin='lower',cmap=plt.cm.RdPu)
     ax2.set_xlabel("Bin index of true " + name_var )
     ax2.set_ylabel("Bin index of reconstructed " + name_var )
     ax2.xaxis.set_major_locator(MaxNLocator(integer=True))

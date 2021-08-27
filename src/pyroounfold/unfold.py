@@ -23,7 +23,7 @@ from pyroounfold.utils.bias_study import study_complex_errors, cov2corr
 from pyroounfold.utils.generate_toys import *
 import pyroounfold.plotstyle as ps
 from pyroounfold.plotstyle.colors import PaperColors as p
-from pyroounfold.plotting import get_migration
+
 
 import pandas as pd
 import numpy as np
@@ -45,7 +45,7 @@ class unfold:
         reco_bin_error (optional) : measured bin-wiese uncertainty, default is statistical error based on bin content
         reco_cov (optional) : measured covariance matrix, default is statistical covariance
         kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False and the full covariance matrix 'reco_cov' propagated through unfolding. If True, the error propagation is based on toys generated internally by RooUnfold.
-        mc_stat_err (optional) : relate to ROOUNFOLD::includeSystematics().  Default "0" is to leave out the effect of statistical uncertainties on the migration matrix. "1" is to include the effect. "2" is for only counting the statistical uncertainties of measured distribtuon and migration matrix. The effect is valueated by internal toys.
+        mc_stat_err (optional) : relate to ROOUNFOLD::includeSystematics().  Default "0" is to leave out the effect of MC statistical uncertainties on the migration matrix. "1" is to include the effect. "2" is for only counting the MC statistical uncertainties of measured distribtuon and migration matrix. The effect is evaluated with internal toys.
         
         
         Result:
@@ -71,6 +71,7 @@ class unfold:
         reco_name = name_var_reco,
         bins = bins
         )
+        
         
         self.reco_bin_error = reco_bin_error
         self.reco_cov = reco_cov
@@ -197,12 +198,6 @@ class unfold:
         self.hist_test_measure = arr_to_th1(self.bins, central_array, error_array)
             
 
-            
-    def plot_migration(self, txt_offset=0, txt_fontsize=12, fname_mig=None, fname_n=None):
-        mig_matrix, n_matrix, mig_fig, n_fig = get_migration(
-                   th1_to_arr(self.hist_train_true), th1_to_arr(self.hist_train_measure),
-                   np.ones(len(th1_to_arr(self.hist_train_true))), self.bins, self.show_var, txt_offset=txt_offset, txt_fontsize=txt_fontsize, fname_mig=fname_mig, fname_n=fname_n)
-                   
                    
     
     def check_bias(self):
