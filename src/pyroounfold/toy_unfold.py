@@ -8,7 +8,8 @@ This provides main unfolding class for toy study.
 
 import ROOT
 import os
-ROOT.gSystem.Load(os.getenv("ROOUNFOLD_PATH"))
+# ROOT.gSystem.Load(os.getenv("ROOUNFOLD_PATH"))
+ROOT.gSystem.Load("libRooUnfold.so")
 from pyroounfold.utils.roo_convertor import *
 from pyroounfold.utils.bias_study import *
 from pyroounfold.utils.generate_toys import *
@@ -24,7 +25,7 @@ import numpy as np
         
 class toy_unfold:
 
-    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=False, kcovtoy=False, mc_stat_err=0):
+    def __init__(self, df_train, weight_train, df_test, weight_test, name_var_true, name_var_reco, show_var, bins, reco_bin_error='False', reco_cov='False', toy_size=1000, poisson=False, kcovtoy=False, mc_stat_err=3):
     
         """
         
@@ -43,19 +44,18 @@ class toy_unfold:
         toy_size (optional) : number of toys, default is 1000
         poisson (optional) : flag to use Poisson smearing based on statistical uncertainty when no reco_cov or reco_bin_error are provided
         kcovtoy (optional) : flag provided by ROOUNFOLD. Default is False and the full covariance matrix 'reco_cov' propagated through unfolding. If True, the error propagation is based on toys generated internally by RooUnfold.
-        mc_stat_err (optional) : relate to ROOUNFOLD::includeSystematics().  Default "0" is to leave out the effect of statistical uncertainties on the migration matrix. "1" is to include the effect. "2" is for only counting the statistical uncertainties of measured distribtuon and migration matrix. The effect is valueated by internal toys.
-        
+        mc_stat_err (optional) : relate to ROOUNFOLD::IncludeSystematics(). "3"[kAll, default] is to include the effect of MC statistical uncertainties on the migration matrix which is is evaluated with internal toys. "0"[kNoSystematics] is to exclude this effect and then only the propagated measurement error will be obtained. "2" [kAlphas] is for only counting the MC statistical uncertainties of measured distribtuon and migration matrix.
         
         """
         
         if(kcovtoy):
-            self.witherror = ROOT.RooUnfold.kCovToy  #  error propagation based on toys generated internally by RooUnfold
+            self.witherror = ROOT.RooUnfold.kCovToys  #  error propagation based on toys generated internally by RooUnfold
         
         else:
             self.witherror = ROOT.RooUnfold.kCovariance  #  error propagation based on full covariance matrix
         
         self.mc_stat_err = mc_stat_err
-        self.hist_train_true, self.hist_train_measure, self.hist_respon, self.hist_test_true, self.hist_test_measure = df_to_roounf(
+        self.hist_train_true, self.hist_train_measure, self.hist_respon, self.hist_train_Adet, self.hist_test_true, self.hist_test_measure = df_to_roounf(
         train = df_train,
         weight_train = weight_train,
         test = df_test,
@@ -100,28 +100,33 @@ class toy_unfold:
 
 
     def do_toyUnfold(self,  method=None, para=None, get_fom=False):
-        if method is None : print('Please indicate one method for unfolding: \'Ids\', \'Svd\', \'Bayes\', \'TUnfold\', \'Invert\', \'BinByBin\'.')
+        if method is None : print('Please indicate one method for unfolding: \'Ids\', \'Svd\', \'Bayes\', \'TUnfold\', \'GP\', \'Invert\', \'BinByBin\'.')
         
         result_df = pd.DataFrame()
         for i in range(self.size):
-            hist_test_measure_toy = arr_to_th1(self.bins, self.toys_df.iloc[i], self.reco_bin_error )
+            hist_test_measure_toy = arr_to_th1_withErr(self.bins, self.toys_df.iloc[i], self.reco_bin_error )
             df_unf, _ = uf(self.hist_test_true, hist_test_measure_toy, self.hist_respon, method, para, self.reco_cov, self.kcovtoy, self.mc_stat_err)
-            result_df = result_df.append(df_unf)
+            result_df = pd.concat([result_df, df_unf])
             
         result_cen_mean = [result_df.loc[result_df.bin_index==i,'unfolded_central'].median() for i in range(0, len(self.bins)-1)]
         
         result_cen_err = [result_df.loc[result_df.bin_index==i,'unfolded_error'].std() + result_df.loc[result_df.bin_index==i,'unfolded_error'].median()
                    for i in range(0, len(self.bins)-1)]
+                   
+        result_coverage_perbin = [result_df.loc[result_df.bin_index==i,'coverage_perbin'].mean() for i in range(0, len(self.bins)-1)]
+        
         result_cov = np.outer(result_cen_err, result_cen_err) * self.reco_cor
         
         
         self.result_df = result_df
         self.result_cen_mean = np.asarray(result_cen_mean)
         self.result_cen_err = np.asarray(result_cen_err)
+        self.result_coverage_perbin = np.asarray(result_coverage_perbin)
         self.result_cov = result_cov
         if get_fom==True:
             err_a, err_b, err_c, err_d, err_e, err_f, err_g = study_complex_errors(result_cen_mean, th1_to_arr(self.hist_test_true)[0], result_cov)
-            dict_fom ={'fom_a': err_a, 'fom_b': err_b, 'fom_c': err_c, 'fom_d': err_d, 'fom_e': err_e, 'fom_f': err_f, 'fom_g': err_g }
+            err_h = sum(result_coverage_perbin)/len(result_coverage_perbin)
+            dict_fom ={'fom_a': err_a, 'fom_b': err_b, 'fom_c': err_c, 'fom_d': err_d, 'fom_e': err_e, 'fom_f': err_f, 'fom_g': err_g, 'fom_h': err_h  }
             self.dict_fom = dict_fom
         
     
@@ -129,13 +134,14 @@ class toy_unfold:
     def do_toyUnfold_scan(self, method=None, para_arr=None, get_fom=True):
         if method is None :
             print('Please indicate one method for unfolding: \'Ids\', \'Svd\', \'Bayes\'.')
-        elif method in ['TUnfold', 'Invert', 'BinByBin']:
+        elif method in ['TUnfold', 'GP', 'Invert', 'BinByBin']:
             print(method + " has no parameter for scanning.")
         else:
             print("Loop in given parameters......")
             
             unf_cen_all = np.array([])
             unf_err_all = np.array([])
+            unf_coverage_all = np.array([])
             err_a=np.array([])
             err_b=np.array([])
             err_c=np.array([])
@@ -143,12 +149,14 @@ class toy_unfold:
             err_e=np.array([])
             err_f=np.array([])
             err_g=np.array([])
+            err_h=np.array([])
             
             for x in para_arr:
                 print("para = " + str(x))
                 self.do_toyUnfold(method, x, True)
                 unf_cen_all = np.append(unf_cen_all, self.result_cen_mean)
                 unf_err_all = np.append(unf_err_all, self.result_cen_err)
+                unf_coverage_all = np.append(unf_coverage_all, self.result_coverage_perbin)
                 err_a = np.append(err_a, self.dict_fom['fom_a'])
                 err_b = np.append(err_b, self.dict_fom['fom_b'])
                 err_c = np.append(err_c, self.dict_fom['fom_c'])
@@ -156,14 +164,18 @@ class toy_unfold:
                 err_e = np.append(err_e, self.dict_fom['fom_e'])
                 err_f = np.append(err_f, self.dict_fom['fom_f'])
                 err_g = np.append(err_g, self.dict_fom['fom_g'])
+                err_h = np.append(err_h, self.dict_fom['fom_h'])
         
             unf_cen_all = unf_cen_all.reshape(len(para_arr), self.nbins)
             unf_err_all = unf_err_all.reshape(len(para_arr), self.nbins)
-        if get_fom==True:
-            dict_fom_all ={'fom_a': err_a, 'fom_b': err_b, 'fom_c': err_c, 'fom_d': err_d, 'fom_e': err_e, 'fom_f': err_f, 'fom_g': err_g }
-            return unf_cen_all, unf_err_all, dict_fom_all
+            unf_coverage_all = unf_coverage_all.reshape(len(para_arr), self.nbins)
             
-        return unf_cen_all, unf_err_all
+        if get_fom==True:
+            dict_fom_all ={'fom_a': err_a, 'fom_b': err_b, 'fom_c': err_c, 'fom_d': err_d, 'fom_e': err_e, 'fom_f': err_f, 'fom_g': err_g, 'fom_h': err_h }
+            
+            return unf_cen_all, unf_err_all, unf_coverage_all, dict_fom_all
+            
+        return unf_cen_all, unf_err_all, unf_coverage_all
         
         
         

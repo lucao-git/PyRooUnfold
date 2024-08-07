@@ -74,6 +74,54 @@ def plot_compare_single_run(df, bins, x_title, y_title):
     plt.show()
     plt.close()
     return fig
+    
+@ps.WG1_decorator
+def plot_compare_single_run_check(df, bins, x_title, y_title):
+    """ Plot for comparing unfolded results, truth and measured distributions
+        
+        Args:
+        df : dataframe with 'truth_central', 'measured_central', 'unfolded_central', 'unfolded_error', 'coverage_perbin'
+        bins : defined bins array (length = number of bins + 1)
+        x_title : string for x-axis title
+        y_title : string for y-axis title
+        
+        Returns:
+        fig : one plot for all compared distributions, and subplots of biases, errors and coverages.
+        """
+    fig, axs = plt.subplots(4, 1, figsize=(8.0, 8.0), sharex=True, gridspec_kw={"height_ratios": [5, 2, 2, 2],'hspace': 0})
+    
+    axs[0].plot(get_bin_centers(bins), df['truth_central'], marker='o', color='greenyellow', ls='', label='true')
+    axs[0].plot(get_bin_centers(bins), df['measured_central'], marker='o', color='red', ls='', label='reco')
+    axs[0].errorbar(x=get_bin_centers(bins), y=df['unfolded_central'], yerr=df['unfolded_error'], xerr=0, marker='.', color='black',ls='', elinewidth=0.5, ecolor='black', label='unfolded')
+    axs[0].set_ylabel(y_title)
+    axs[0].legend() #loc='upper left'
+    
+    axs[1].plot(get_bin_centers(bins), df['coverage_perbin'], marker='o', color='dodgerblue',ls='')
+    axs[1].axhline(y=0.6827,  ## one sigma
+            xmin=bins[0]-get_bin_centers(bins)[0], xmax=bins[-1]+get_bin_centers(bins)[-1], color='black', linewidth=1, ls='dotted')
+    axs[1].set_ylabel('Coverage')
+    axs[1].set_ylim(0.5*min(df['coverage_perbin']), 1.2*max(df['coverage_perbin']))
+    
+    axs[2].bar(get_bin_centers(bins), height=df['unfolded_error'], width=get_bin_widths(bins), color="lightgray")
+    axs[2].set_ylabel('Error')
+ 
+    bias = df['unfolded_central'] - df['truth_central']
+    positive = np.array([i if i >= 0 else 0 for i in bias ])
+    negative = np.array([i if i < 0 else 0 for i in bias ])
+    axs[3].bar(get_bin_centers(bins), height=positive, width=get_bin_widths(bins), color="salmon")
+    axs[3].bar(get_bin_centers(bins), height=abs(negative), bottom=negative, width=get_bin_widths(bins), color="salmon")
+    axs[3].set_ylabel('Bias')
+    axs[3].axhline(y=0, xmin=bins[0]-get_bin_centers(bins)[0], xmax=bins[-1]+get_bin_centers(bins)[-1], color='black', linewidth=1, ls='dotted')
+    axs[3].set_ylim(-1.4*max(abs(bias)), 1.4*max(abs(bias)))
+    axs[3].set_xlabel(x_title)
+    
+    fig.align_ylabels(axs[:])
+    plt.tight_layout()
+    plt.show()
+    plt.close()
+    return fig
+    
+    
 
 @ps.WG1_decorator
 def plot_compare_para(nerr, para, name, err_list, str_list, c_list, label, last_para_index=None):
@@ -135,8 +183,7 @@ def get_migration(true_data, reco_data, weight, bin_var, name_var, txt_offset=0,
         To Do:
         ---- could use get_bin_centers() to automatically locate text instead of manully seting by txt_offset
         """
-    rc('text', usetex=True)
-    plt.rc('text', usetex=True)
+
     bin_layout = range(len(bin_var)-1)
     n_matrix, _, _ = np.histogram2d(x=reco_data, y=true_data, bins=bin_var, weights=weight)
     x = np.linalg.norm(n_matrix, ord=1, axis=0)
@@ -409,13 +456,13 @@ def plot_unf_toys(toy, inv_cen,inv_err, xlab, leg, case, violin_widths=0.2, yup=
 @ps.WG1_decorator
 def plot_unf_fom_my(k_arr, svd_fom_dict, inv_fom_dict, variable, leg='center', fname=None):
     
-    err_list = [svd_fom_dict['fom_'+ i] for i in ['a',  'c', 'e', 'g']]
-    errors_inv = [inv_fom_dict['fom_'+ i] for i in ['a',  'c', 'e', 'g']]
+    err_list = [svd_fom_dict['fom_'+ i] for i in ['a',  'c', 'e', 'h']]
+    errors_inv = [inv_fom_dict['fom_'+ i] for i in ['a',  'c', 'e', 'h']]
     
     err_names = ['$\sum{|b_{i}|}$',
              '$\sum{b_{i}}$',
              '$\sum{|b_{i}|}/\sqrt{\sum Cov_{ij}}$',
-             '$\sum{|b_{i}|/\sqrt{Cov_{ii}}}$' ]
+             'Coverage' ]
 
     
     fig, axs = plt.subplots(2,2, figsize=(12, 8))

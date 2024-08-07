@@ -82,7 +82,7 @@ def df_to_roounf(train, weight_train, test, weight_test, true_name, reco_name, b
 
     hist_respon = ROOT.RooUnfoldResponse(hist_train_reco, hist_train_true, hist_train_Adet)
 
-    return hist_train_true, hist_train_reco, hist_respon, hist_test_true, hist_test_reco
+    return hist_train_true, hist_train_reco, hist_respon, hist_train_Adet, hist_test_true, hist_test_reco
 
 
 def th1_to_arr(hist):
@@ -110,12 +110,12 @@ def th1_to_arr(hist):
     return np.asarray(central), np.asarray(error)
     
     
-def arr_to_th1(bins, cen, err='False'):
+def arr_to_th1_withErr(bins, cen, err):
     """ Convert central value and error in the format of numpy arraies to TH1D histogram.
         Args:
         bins : binning information
-        central : an array of central value for each bin
-        error (optional) : an array of error for each bin
+        central : an array (slice of dataframe) of central value for each bin
+        error: an array of error for each bin
         
         Returns:
         hist : TH1D histogram
@@ -123,12 +123,30 @@ def arr_to_th1(bins, cen, err='False'):
         """
     ROOT.TH1.AddDirectory(False)
     hist = ROOT.TH1D("h1", "h1", bins.size-1, bins)
-    if err=='False': # default is statistical error
-        err=np.sqrt(cen)
     for x in range(bins.size-1):
-            hist.SetBinContent(x+1, cen[x])
+            hist.SetBinContent(x+1, cen.iloc[x])
             if err.size==bins.size-1:
-                hist.SetBinError(x+1, err[x])
+                hist.SetBinError(x+1, err.iloc[x])
+    return hist
+    
+def arr_to_th1(bins, cen):
+    """ Convert central value and error in the format of numpy arraies to TH1D histogram.
+        Args:
+        bins : binning information
+        central : an array (slice of dataframe) of central value for each bin
+        
+        Returns:
+        hist : TH1D histogram
+        
+        """
+    ROOT.TH1.AddDirectory(False)
+    hist = ROOT.TH1D("h1", "h1", bins.size-1, bins)
+    # default is statistical error
+    err=np.sqrt(cen)
+    for x in range(bins.size-1):
+            hist.SetBinContent(x+1, cen.iloc[x])
+            if err.size==bins.size-1:
+                hist.SetBinError(x+1, err.iloc[x])
     return hist
     
     
@@ -168,3 +186,35 @@ def ndarr_to_th2(cov):
         for y in range(ndim):
             hist.SetBinContent(x+1, y+1, cov[x][y])
     return hist
+    
+    
+def tvec_to_arr(vec):
+    """ Convert TVectorD to numpy 1D array.
+        Args:
+        vec : TVectorD (ndim)
+        
+        Returns:
+        arr : numpy array
+    
+        """
+    arr = []
+    ndim = vec.GetNrows()
+    for x in range(ndim):
+        arr.append(vec[x])
+    return np.asarray(arr)
+    
+    
+def arr_to_tvec(arr):
+    """ Convert numpy 1D array to TVectorD.
+        Args:
+        arr : numpy ndarray (ndim)
+        
+        Returns:
+        vec : TVectorD
+    
+        """
+    ndim = len(arr)
+    vec = ROOT.TVectorD(ndim)
+    for x in range(ndim):
+        vec[x] = arr[x]
+    return vec
