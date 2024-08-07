@@ -45,10 +45,10 @@ height_width_ratio = GOLDEN_RATIO * 1.1  # = height / width
 _width = width_single_column
 _height = width_single_column * height_width_ratio
 
-_params = {'font.family': 'sans-serif',
-           'font.serif': ['Times', 'Computer Modern Roman'],
+_params = {'font.family': 'DejaVu Sans',
+           'font.serif': ['Times New Roman'],
            # ['Helvetica', 'Computer Modern Sans serif'] are not default installed,
-           'font.sans-serif': ['Helvetica'],
+           #'font.sans-serif': ['Helvetica'],
            #'font.size': 8,
            #'text.usetex': True,
            # To force LaTeX use Helvetica fonts.
