@@ -24,7 +24,7 @@ e.g. in my case
 export ROOUNFOLD_PATH="/Users/caolu/Workspace/RooUnfold/libRooUnfold.so"
 ```
 
-or using CVMFS version provided as eternal package of Belle-II software 
+or using CVMFS version provided as externals of Belle-II software 
 
 ```
 export ROOUNFOLD_PATH="/cvmfs/belle.cern.ch/el9/externals/v02-01-00/Linux_x86_64/common/lib/libRooUnfold.so"
@@ -33,16 +33,10 @@ export ROOUNFOLD_PATH="/cvmfs/belle.cern.ch/el9/externals/v02-01-00/Linux_x86_64
 - To install PyRooUnfold, you can do
 
 ```
-python3 setup.py install
+pip install .
 ```
 
-If you do not have your own python installation you can do
-
-```
-python3 setup.py install --user
-```
-
-After this, you need to include the package into your python library. This can be done via adding the following command in your ~/.bash :
+If stall via setup.py, you need to include the package into your python library
 
 ```
 export PYTHONPATH=$PYTHONPATH:<path-of-PyrooUnfold>
@@ -50,7 +44,7 @@ export PYTHONPATH=$PYTHONPATH:<path-of-PyrooUnfold>
 
 ### Versions
 - v1.0.0: compatible with RooUnfold 2.0.1
-
+- v2.0.0: compatible with RooUnfold 3.0.0 
 
 #### Tipps on RooUnfold
 
