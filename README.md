@@ -27,7 +27,7 @@ export ROOUNFOLD_PATH="/Users/caolu/Workspace/RooUnfold/libRooUnfold.so"
 or using CVMFS version provided as externals of Belle-II software 
 
 ```
-export ROOUNFOLD_PATH="/cvmfs/belle.cern.ch/el9/externals/v02-01-00/Linux_x86_64/common/lib/libRooUnfold.so"
+export ROOUNFOLD_PATH="/cvmfs/belle.cern.ch/el9/externals/v02-02-01/Linux_x86_64/common/lib/libRooUnfold.so"
 ```
 
 - To install PyRooUnfold, you can first check out the needed version, e.g.

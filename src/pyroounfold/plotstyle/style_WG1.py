@@ -29,7 +29,6 @@ https://matplotlib.org/tutorials/introductory/customizing.html
 from .decorator import MPLdecorator
 from .colors import *
 from .layout import GOLDEN_RATIO
-import matplotlib.font_manager
 
 __all__ = ['WG1_decorator', ]
 
