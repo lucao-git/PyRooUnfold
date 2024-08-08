@@ -46,6 +46,11 @@ If install via setup.py, you need to include the package into your python librar
 export PYTHONPATH=$PYTHONPATH:<path-of-PyrooUnfold>
 ```
 
+### User Guide
+
+- A hands-on introduction and a simple demo Jupyter notebook can be found in ./example folder.
+
+
 ### Versions/Tags
 - v1.0.0: compatible with RooUnfold 2.0.1
 - v2.0.0: compatible with RooUnfold 3.0.0 
